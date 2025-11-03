@@ -14,6 +14,8 @@ export function parseRSSFeed(rssXml) {
       pubDate: $item.find('pubDate').text(),
       author: $item.find('author').text(),
       guid: $item.find('guid').text(),
+      description: $item.find('description').text(),
+      comments: $item.find('comments').text(),
     });
   });
 

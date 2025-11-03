@@ -7,6 +7,10 @@ export const config = {
     baseUrl: 'https://sspai.com',
     cdnDomain: 'cdnfile.sspai.com',
   },
+  hackernews: {
+    feedUrl: 'https://news.ycombinator.com/rss',
+    baseUrl: 'https://news.ycombinator.com',
+  },
 
   cache: {
     feedTTL: 1800,

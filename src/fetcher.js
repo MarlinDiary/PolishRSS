@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { config } from './config.js';
 
-async function retryWithBackoff(fn, maxRetries = 3) {
+export async function retryWithBackoff(fn, maxRetries = 3) {
   for (let i = 0; i < maxRetries; i++) {
     try {
       return await fn();
@@ -29,12 +29,46 @@ export async function fetchOriginalRSS() {
   }
 }
 
-export async function fetchArticle(url) {
+export async function fetchHackerNewsRSS() {
+  try {
+    const response = await retryWithBackoff(() =>
+      axios.get(config.hackernews.feedUrl, {
+        headers: {
+          ...config.headers,
+          Referer: config.hackernews.baseUrl,
+        },
+        timeout: 20000,
+      })
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching Hacker News RSS:', error.message);
+    throw new Error('Failed to fetch Hacker News RSS feed');
+  }
+}
+
+export async function fetchArticle(url, options = {}) {
+  const {
+    headers: extraHeaders = {},
+    timeout = 20000,
+  } = options;
+
+  const headers = {
+    ...config.headers,
+    ...extraHeaders,
+  };
+
+  Object.keys(headers).forEach(key => {
+    if (headers[key] === undefined) {
+      delete headers[key];
+    }
+  });
+
   try {
     const response = await retryWithBackoff(() =>
       axios.get(url, {
-        headers: config.headers,
-        timeout: 20000,
+        headers,
+        timeout,
       })
     );
     return response.data;

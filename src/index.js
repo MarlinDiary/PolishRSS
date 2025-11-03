@@ -1,6 +1,7 @@
 import express from 'express';
 import { config } from './config.js';
 import { generateFullTextRSS } from './rssGenerator.js';
+import { generateHackerNewsRSS } from './ycombinatorGenerator.js';
 import { fetchImage } from './fetcher.js';
 import { feedCache, imageCache, getOrSet, clearAllCaches, getCacheStats } from './cache.js';
 
@@ -12,6 +13,7 @@ app.get('/', (req, res) => {
     status: 'running',
     endpoints: {
       feed: '/sspai',
+      ycombinator: '/ycombinator',
       imageProxy: '/image-proxy?url=<image_url>',
       clearCache: '/clear-cache',
       stats: '/stats',
@@ -36,6 +38,27 @@ app.get('/sspai', async (req, res) => {
     console.error('Error serving RSS feed:', error);
     res.status(500).json({
       error: 'Failed to generate RSS feed',
+      message: error.message,
+    });
+  }
+});
+
+app.get('/ycombinator', async (req, res) => {
+  try {
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
+
+    const rssXml = await getOrSet(
+      feedCache,
+      'hacker-news-feed',
+      () => generateHackerNewsRSS(baseUrl)
+    );
+
+    res.set('Content-Type', 'application/rss+xml; charset=utf-8');
+    res.send(rssXml);
+  } catch (error) {
+    console.error('Error serving Hacker News feed:', error);
+    res.status(500).json({
+      error: 'Failed to generate Hacker News feed',
       message: error.message,
     });
   }
