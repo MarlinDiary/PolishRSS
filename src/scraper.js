@@ -30,15 +30,22 @@ export async function scrapeArticleContent(url) {
     // Try multiple selectors in order of specificity
     const selectors = [
       // SSPAI specific selectors
-      'article .content',
-      '.article-content',
-      '.post-content',
+      '.article__main__content',
+      '.article__main__wrapper',
       '.article-body',
+      '.article-detail',
+      '.article-content',
       '.content-body',
+      '.post-content',
       '.entry-content',
 
       // Generic article selectors
+      '[class*="article__main__"]',
+      '[class*="article-body"]',
+      '[class*="article-content"]',
+      '[class*="post-content"]',
       'article .body',
+      'article .content',
       'article > div',
       'main article',
       '[data-type="article"]',
@@ -55,15 +62,40 @@ export async function scrapeArticleContent(url) {
 
     // Try each selector and verify content length
     for (const selector of selectors) {
-      const element = $(selector);
-      if (element.length > 0) {
-        const tempContent = element.html();
-        // Only accept if content is substantial (>200 chars)
-        if (tempContent && tempContent.length > 200) {
-          content = tempContent;
-          console.log(`✓ Found content using selector: ${selector}`);
-          break;
+      const elements = $(selector);
+      if (!elements.length) {
+        continue;
+      }
+
+      let found = false;
+
+      elements.each((_, el) => {
+        if (found) {
+          return false;
         }
+
+        const $el = $(el);
+        const fragment = $el.html();
+        if (!fragment) {
+          return;
+        }
+
+        const textLength = $el.text().replace(/\s+/g, '').length;
+        const paragraphCount = $el.find('p').length;
+        const figureCount = $el.find('figure').length;
+
+        if (paragraphCount === 0 && figureCount === 0 && textLength < 200) {
+          return;
+        }
+
+        content = fragment;
+        found = true;
+        return false;
+      });
+
+      if (found) {
+        console.log(`✓ Found content using selector: ${selector}`);
+        break;
       }
     }
 
@@ -84,9 +116,14 @@ export async function scrapeArticleContent(url) {
       const article = $('article');
       if (article.length > 0) {
         const tempContent = article.html();
-        if (tempContent && tempContent.length > 200) {
-          content = tempContent;
-          console.log('✓ Using entire <article> tag');
+        if (tempContent) {
+          const $articleContent = cheerio.load(tempContent);
+          const articleTextLength = $articleContent.text().replace(/\s+/g, '').length;
+          const articleHasBlocks = $articleContent('p').length > 0 || $articleContent('figure').length > 0;
+          if (articleHasBlocks || articleTextLength > 200) {
+            content = tempContent;
+            console.log('✓ Using entire <article> tag');
+          }
         }
       }
     }
@@ -96,9 +133,14 @@ export async function scrapeArticleContent(url) {
       const main = $('main');
       if (main.length > 0) {
         const tempContent = main.html();
-        if (tempContent && tempContent.length > 200) {
-          content = tempContent;
-          console.log('✓ Using <main> tag');
+        if (tempContent) {
+          const $mainContent = cheerio.load(tempContent);
+          const mainTextLength = $mainContent.text().replace(/\s+/g, '').length;
+          const mainHasBlocks = $mainContent('p').length > 0 || $mainContent('figure').length > 0;
+          if (mainHasBlocks || mainTextLength > 200) {
+            content = tempContent;
+            console.log('✓ Using <main> tag');
+          }
         }
       }
     }
