@@ -5,6 +5,7 @@ import { generateHackerNewsRSS } from './ycombinatorGenerator.js';
 import { fetchImage } from './fetcher.js';
 import {
   cacheKeys,
+  buildFeedCacheKey,
   feedCache,
   imageCache,
   getOrSet,
@@ -43,10 +44,11 @@ app.get('/', (req, res) => {
 app.get('/sspai', async (req, res) => {
   try {
     const baseUrl = `${req.protocol}://${req.get('host')}`;
+    const cacheKey = buildFeedCacheKey(cacheKeys.sspaiFullFeed, baseUrl);
 
     const rssXml = await getOrSet(
       feedCache,
-      cacheKeys.sspaiFullFeed,
+      cacheKey,
       () => generateFullTextRSS(baseUrl)
     );
 
@@ -64,10 +66,11 @@ app.get('/sspai', async (req, res) => {
 app.get('/ycombinator', async (req, res) => {
   try {
     const baseUrl = `${req.protocol}://${req.get('host')}`;
+    const cacheKey = buildFeedCacheKey(cacheKeys.hackerNewsFeed, baseUrl);
 
     const rssXml = await getOrSet(
       feedCache,
-      cacheKeys.hackerNewsFeed,
+      cacheKey,
       () => generateHackerNewsRSS(baseUrl)
     );
 

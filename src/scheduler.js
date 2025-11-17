@@ -1,5 +1,5 @@
 import { config } from './config.js';
-import { cacheKeys, feedCache } from './cache.js';
+import { cacheKeys, buildFeedCacheKey, feedCache } from './cache.js';
 import { generateFullTextRSS } from './rssGenerator.js';
 
 const logPrefix = '[scheduler]';
@@ -22,7 +22,8 @@ async function refreshSspaiFeed(baseUrl) {
   console.log(`${logPrefix} Refreshing SSPAI feed cache...`);
   try {
     const rssXml = await generateFullTextRSS(baseUrl);
-    feedCache.set(cacheKeys.sspaiFullFeed, rssXml, schedulerTtlSeconds);
+    const cacheKey = buildFeedCacheKey(cacheKeys.sspaiFullFeed, baseUrl);
+    feedCache.set(cacheKey, rssXml, schedulerTtlSeconds);
     console.log(`${logPrefix} SSPAI feed cache updated successfully.`);
   } catch (error) {
     console.error(`${logPrefix} Failed to refresh SSPAI feed:`, error.message);

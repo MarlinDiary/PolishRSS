@@ -6,6 +6,11 @@ export const cacheKeys = {
   hackerNewsFeed: 'hacker-news-feed',
 };
 
+export const buildFeedCacheKey = (key, baseUrl) => {
+  const normalizedBase = (baseUrl || '').replace(/\/$/, '');
+  return `${key}:${normalizedBase}`;
+};
+
 export const feedCache = new NodeCache({
   stdTTL: config.cache.feedTTL,
   checkperiod: 120,
