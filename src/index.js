@@ -15,6 +15,7 @@ import {
 import { primeSspaiFeed, startSspaiFeedScheduler } from './scheduler.js';
 
 const app = express();
+app.set('trust proxy', true);
 let feedRefreshTimer = null;
 
 const resolveServiceBaseUrl = () => {

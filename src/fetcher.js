@@ -51,6 +51,13 @@ export async function fetchArticle(url, options = {}) {
   const {
     headers: extraHeaders = {},
     timeout = config.timeouts.article,
+    allowedContentTypes = [
+      'text/html',
+      'application/xhtml+xml',
+      'text/plain',
+      'application/xml',
+      'text/xml',
+    ],
   } = options;
 
   const headers = {
@@ -69,9 +76,25 @@ export async function fetchArticle(url, options = {}) {
       axios.get(url, {
         headers,
         timeout,
+        responseType: 'arraybuffer',
+        validateStatus: status => status >= 200 && status < 400,
       })
     );
-    return response.data;
+
+    const contentType = (response.headers['content-type'] || '').toLowerCase();
+    const isAllowedType = allowedContentTypes.some(type => contentType.includes(type));
+    if (!isAllowedType) {
+      throw new Error(`Unsupported content type: ${contentType || 'unknown'}`);
+    }
+
+    const charsetMatch = contentType.match(/charset=([^;]+)/i);
+    const encoding = (charsetMatch ? charsetMatch[1] : 'utf-8').trim().toLowerCase();
+    try {
+      return Buffer.from(response.data).toString(encoding === 'iso-8859-1' ? 'latin1' : encoding);
+    } catch (error) {
+      console.warn(`Falling back to utf-8 decoding for ${url}:`, error.message);
+      return Buffer.from(response.data).toString('utf-8');
+    }
   } catch (error) {
     console.error(`Error fetching article ${url}:`, error.message);
     throw new Error(`Failed to fetch article: ${url}`);
