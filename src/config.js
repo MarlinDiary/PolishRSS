@@ -19,6 +19,24 @@ export const config = {
     feedUrl: 'https://news.ycombinator.com/rss',
     baseUrl: 'https://news.ycombinator.com',
   },
+  telegramFeeds: {
+    weixin: {
+      feedUrl: 'https://rsshub.protoyard.com/telegram/channel/wxbyg',
+      baseUrl: 'https://t.me/s/wxbyg',
+      title: '微信搬运工 - Telegraph Full Text',
+      description: 'Full-text Telegraph RSS feed for 微信搬运工',
+      author: '微信搬运工',
+      route: '/weixin',
+    },
+    zhihu: {
+      feedUrl: 'https://rsshub.protoyard.com/telegram/channel/zhihu_bazaar',
+      baseUrl: 'https://t.me/s/zhihu_bazaar',
+      title: '知乎大巴扎 - Telegraph Full Text',
+      description: 'Full-text Telegraph RSS feed for 知乎大巴扎',
+      author: '知乎大巴扎',
+      route: '/zhihu',
+    },
+  },
 
   cache: {
     feedTTL: toPositiveNumber(process.env.FEED_CACHE_TTL, 3600),

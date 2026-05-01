@@ -4,6 +4,8 @@ import { config } from './config.js';
 export const cacheKeys = {
   sspaiFullFeed: 'full-rss-feed',
   hackerNewsFeed: 'hacker-news-feed',
+  weixinTelegraphFeed: 'weixin-telegraph-feed',
+  zhihuTelegraphFeed: 'zhihu-telegraph-feed',
 };
 
 export const buildFeedCacheKey = (key, baseUrl) => {

@@ -47,6 +47,29 @@ export async function fetchHackerNewsRSS() {
   }
 }
 
+export async function fetchRSSFeed(feedUrl, options = {}) {
+  const {
+    headers: extraHeaders = {},
+    timeout = config.timeouts.feed,
+  } = options;
+
+  try {
+    const response = await retryWithBackoff(() =>
+      axios.get(feedUrl, {
+        headers: {
+          ...config.headers,
+          ...extraHeaders,
+        },
+        timeout,
+      })
+    );
+    return response.data;
+  } catch (error) {
+    console.error(`Error fetching RSS feed ${feedUrl}:`, error.message);
+    throw new Error(`Failed to fetch RSS feed: ${feedUrl}`);
+  }
+}
+
 export async function fetchArticle(url, options = {}) {
   const {
     headers: extraHeaders = {},

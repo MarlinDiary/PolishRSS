@@ -2,6 +2,7 @@ import express from 'express';
 import { config } from './config.js';
 import { generateFullTextRSS } from './rssGenerator.js';
 import { generateHackerNewsRSS } from './ycombinatorGenerator.js';
+import { generateTelegramTelegraphRSS } from './telegramTelegraphGenerator.js';
 import { fetchImage } from './fetcher.js';
 import {
   cacheKeys,
@@ -34,6 +35,8 @@ app.get('/', (req, res) => {
     endpoints: {
       feed: '/sspai',
       ycombinator: '/ycombinator',
+      weixin: '/weixin',
+      zhihu: '/zhihu',
       imageProxy: '/image-proxy?url=<image_url>',
       clearCache: '/clear-cache',
       stats: '/stats',
@@ -41,6 +44,28 @@ app.get('/', (req, res) => {
     github: 'https://github.com/yourusername/PiRSS',
   });
 });
+
+async function serveTelegramTelegraphFeed(req, res, feedKey, cacheKey) {
+  try {
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
+    const scopedCacheKey = buildFeedCacheKey(cacheKey, baseUrl);
+
+    const rssXml = await getOrSet(
+      feedCache,
+      scopedCacheKey,
+      () => generateTelegramTelegraphRSS(feedKey, baseUrl)
+    );
+
+    res.set('Content-Type', 'application/rss+xml; charset=utf-8');
+    res.send(rssXml);
+  } catch (error) {
+    console.error(`Error serving ${feedKey} Telegraph RSS feed:`, error);
+    res.status(500).json({
+      error: `Failed to generate ${feedKey} Telegraph RSS feed`,
+      message: error.message,
+    });
+  }
+}
 
 app.get('/sspai', async (req, res) => {
   try {
@@ -84,6 +109,24 @@ app.get('/ycombinator', async (req, res) => {
       message: error.message,
     });
   }
+});
+
+app.get('/weixin', (req, res) => {
+  serveTelegramTelegraphFeed(
+    req,
+    res,
+    'weixin',
+    cacheKeys.weixinTelegraphFeed
+  );
+});
+
+app.get('/zhihu', (req, res) => {
+  serveTelegramTelegraphFeed(
+    req,
+    res,
+    'zhihu',
+    cacheKeys.zhihuTelegraphFeed
+  );
 });
 
 app.get('/image-proxy', async (req, res) => {
